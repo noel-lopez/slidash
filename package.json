@@ -1,0 +1,40 @@
+{
+  "name": "@slidash/cli",
+  "version": "0.0.1",
+  "description": "Vibe-code beautiful HTML/CSS slides with AI. No builder, no bloat.",
+  "keywords": [
+    "slides",
+    "presentation",
+    "deck",
+    "html",
+    "css",
+    "ai",
+    "agentic",
+    "scaffolding",
+    "cli",
+    "generator"
+  ],
+  "homepage": "https://github.com/noel-lopez/slidash#readme",
+  "bugs": {
+    "url": "https://github.com/noel-lopez/slidash/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noel-lopez/slidash.git"
+  },
+  "license": "MIT",
+  "author": "Noel Lopez",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "bin": {
+    "slidash": "bin/slidash.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}
