@@ -2,7 +2,7 @@
 
 > **Prompt it. Dash it. Present it.**
 
-Build beautiful HTML/CSS slides with AI. No builder, no bloat.
+Craft beautiful HTML/CSS slides with AI. No builder, no bloat.
 
 Generating HTML and CSS has never been cheaper. Slidash hands you the skeleton, AI fills it with a presentation as unique as your idea. Today your agent writes that markup blind, reinventing the same navigation plumbing every time — slidash hands over the working machinery so the agent can focus on content and design.
 
