@@ -1,5 +1,5 @@
 {
-  "name": "@slidash/cli",
+  "name": "create-slidash",
   "version": "0.0.1",
   "description": "Vibe-code beautiful HTML/CSS slides with AI. No builder, no bloat.",
   "keywords": [
