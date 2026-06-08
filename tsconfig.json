@@ -4,8 +4,6 @@
     "lib": ["ES2022"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "rootDir": "src",
-    "outDir": "dist",
     "types": ["node"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -14,9 +12,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "declaration": false,
-    "sourceMap": false
+    "noEmit": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src", "vitest.config.ts"]
 }
