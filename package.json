@@ -28,13 +28,30 @@
     "access": "public"
   },
   "type": "module",
+  "packageManager": "pnpm@11.5.2",
   "bin": {
-    "slidash": "bin/slidash.js"
+    "slidash": "dist/cli.js"
   },
   "files": [
-    "bin"
+    "dist"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
+    "@types/node": "^25.9.2",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   }
 }
