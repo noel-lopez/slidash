@@ -9,7 +9,7 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { scaffold } from './scaffolder.js'
+import { checkTargetDir, scaffold } from './scaffolder.js'
 
 describe('scaffold', () => {
   let root: string
@@ -94,6 +94,31 @@ describe('scaffold', () => {
       // Nothing was clobbered or added.
       expect(await readFile(keepFile, 'utf8')).toBe('precious')
       expect(await readdir(targetDir)).toEqual(['keep.txt'])
+    })
+  })
+
+  describe('checkTargetDir', () => {
+    it('accepts a folder that does not exist yet without creating it', async () => {
+      const targetDir = join(root, 'not-yet')
+
+      expect(await checkTargetDir(targetDir)).toBe(true)
+      await expect(readdir(targetDir)).rejects.toMatchObject({ code: 'ENOENT' })
+    })
+
+    it('accepts a pre-existing empty folder', async () => {
+      const targetDir = join(root, 'empty')
+      await mkdir(targetDir, { recursive: true })
+
+      expect(await checkTargetDir(targetDir)).toBe(true)
+    })
+
+    it('returns a clear message for a non-empty folder', async () => {
+      const targetDir = join(root, 'occupied')
+      await mkdir(targetDir, { recursive: true })
+      await writeFile(join(targetDir, 'keep.txt'), 'precious')
+
+      const result = await checkTargetDir(targetDir)
+      expect(result).toMatch(/not empty/i)
     })
   })
 })
