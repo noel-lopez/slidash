@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>slidash presentation</title>
+    <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="slidash.css" />
+  </head>
+  <body>
+    <section class="slide">
+      <h1>Your presentation <span class="accent">starts here</span></h1>
+      <p class="muted">
+        Plain HTML/CSS/JS. Edit this file and theme.css — the navigation just
+        works. Press → to continue.
+      </p>
+    </section>
+
+    <!-- data-steps="2" → this slide reveals its two data-step children in turn. -->
+    <section class="slide" data-steps="2">
+      <h2>Reveal things step by step</h2>
+      <p data-step="1">First this appears…</p>
+      <p data-step="2" class="accent">…then this.</p>
+    </section>
+
+    <!-- slidash.js wires up this chrome by id; keep the ids if you restyle it. -->
+    <nav class="chrome" aria-label="Slide navigation">
+      <div class="chrome__arrows">
+        <button id="prevBtn" class="chrome__btn" type="button" aria-label="Previous">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <button id="nextBtn" class="chrome__btn" type="button" aria-label="Next">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+        </button>
+      </div>
+      <div id="dots" class="chrome__dots"></div>
+      <span class="chrome__counter"><b id="counterCurrent">1</b>/<span id="counterTotal">1</span></span>
+    </nav>
+
+    <script src="slidash.js"></script>
+  </body>
+</html>

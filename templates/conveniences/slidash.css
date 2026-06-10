@@ -1,0 +1,141 @@
+/* slidash machinery — chrome, transitions, step reveals. Edit freely.
+   Self-sufficient: never reads a theme token, so it renders with no starter at
+   all. Themeable points go through var(--slidash-*, <fallback>); override the
+   variables from theme.css if you like, but the machinery works either way. */
+
+/* Themeable hooks (all optional) — set any in theme.css to restyle the chrome;
+   each has a built-in fallback, so declare one only to deviate from it.
+
+     --slidash-ease            motion curve for every transition
+     --slidash-chrome-bg       arrow-button background
+     --slidash-chrome-fg       arrow-button icon
+     --slidash-chrome-line     button borders, idle dots
+     --slidash-chrome-accent   hovered button, active dot
+     --slidash-chrome-faint    hovered dot, counter text
+     --slidash-chrome-strong   current-slide number
+     --slidash-chrome-mono     counter font */
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+.slide {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 8vh 10vw 14vh;
+}
+
+.slide.is-active {
+  display: flex;
+}
+
+.slide [data-step] {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.4s var(--slidash-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 0.4s var(--slidash-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.slide [data-step].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+.chrome {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(1.5rem, 4vw, 3rem);
+  user-select: none;
+}
+
+.chrome__arrows {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chrome__btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--slidash-chrome-line, #e4e4e7);
+  border-radius: 9px;
+  background: var(--slidash-chrome-bg, #ffffff);
+  color: var(--slidash-chrome-fg, #52525b);
+  cursor: pointer;
+  transition:
+    border-color 0.2s var(--slidash-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    color 0.2s var(--slidash-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.chrome__btn:hover {
+  border-color: var(--slidash-chrome-accent, #0a0a0a);
+  color: var(--slidash-chrome-accent, #0a0a0a);
+}
+
+.chrome__btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.chrome__dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 60vw;
+}
+
+.chrome__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--slidash-chrome-line, #e4e4e7);
+  cursor: pointer;
+  transition:
+    background 0.25s var(--slidash-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 0.25s var(--slidash-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.chrome__dot:hover {
+  background: var(--slidash-chrome-faint, #a1a1aa);
+}
+
+.chrome__dot.is-active {
+  background: var(--slidash-chrome-accent, #0a0a0a);
+  transform: scale(1.25);
+}
+
+.chrome__counter {
+  font:
+    0.85rem/1 var(--slidash-chrome-mono, ui-monospace, "SF Mono", monospace);
+  color: var(--slidash-chrome-faint, #a1a1aa);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.chrome__counter b {
+  color: var(--slidash-chrome-strong, #0a0a0a);
+  font-weight: 600;
+}

@@ -1,0 +1,49 @@
+/* theme.css — your visual layer. The "none" starter ships a neutral token
+   stub: legible, nothing opinionated to undo. Build your aesthetic here. */
+
+:root {
+  --bg: #ffffff;
+  --ink: #16181d;
+  --muted: #6b7280;
+  --accent: var(--ink);
+
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: var(--font-body);
+
+  --space: 1rem;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+
+.slide h1,
+.slide h2 {
+  font-family: var(--font-heading);
+  line-height: 1.1;
+  margin: 0 0 var(--space);
+}
+
+.slide h1 {
+  font-size: 3rem;
+}
+
+.slide h2 {
+  font-size: 2rem;
+}
+
+.slide p {
+  font-size: 1.25rem;
+  margin: 0 0 var(--space);
+}
+
+.slide .muted {
+  color: var(--muted);
+}
+
+.slide .accent {
+  color: var(--accent);
+}
