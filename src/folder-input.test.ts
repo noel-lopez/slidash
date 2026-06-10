@@ -2,7 +2,24 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { validateFolderInput } from './folder-input.js'
+import { resolveFolderInput, validateFolderInput } from './folder-input.js'
+
+describe('resolveFolderInput', () => {
+  it('trims and resolves a relative path against the cwd', () => {
+    expect(resolveFolderInput('  ./slides  ')).toEqual({
+      requested: './slides',
+      targetDir: join(process.cwd(), 'slides'),
+    })
+  })
+
+  it('keeps an absolute path as the target dir', () => {
+    const absolute = join(tmpdir(), 'somewhere')
+    expect(resolveFolderInput(absolute)).toEqual({
+      requested: absolute,
+      targetDir: absolute,
+    })
+  })
+})
 
 describe('validateFolderInput', () => {
   let root: string
