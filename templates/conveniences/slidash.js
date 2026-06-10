@@ -41,7 +41,9 @@
 
   // Position lives in localStorage, NOT the URL hash: touching the hash would
   // reset the browser's per-URL zoom. Stored 1-based as "slide.step" (e.g. "2.1").
-  const STORE_KEY = 'slidash:pos'
+  // Namespaced by pathname so multiple decks opened over file:// (which share one
+  // origin) don't clobber each other's position.
+  const STORE_KEY = 'slidash:pos:' + location.pathname
 
   function readLocation() {
     let raw = null
