@@ -9,7 +9,12 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { checkTargetDir, scaffold } from './scaffolder.js'
+import { scaffold } from './scaffolder.js'
+import type { TargetDirectory } from './target-directory.js'
+
+function target(targetDir: string): TargetDirectory {
+  return { requested: targetDir, targetDir }
+}
 
 describe('scaffold', () => {
   let root: string
@@ -26,7 +31,7 @@ describe('scaffold', () => {
     it('emits the conveniences plus the starter visual layer', async () => {
       const targetDir = join(root, 'deck')
 
-      await scaffold({ targetDir, starter: 'none' })
+      await scaffold({ target: target(targetDir), starter: 'none' })
 
       const files = await readdir(targetDir)
       expect(files.sort()).toEqual(
@@ -44,7 +49,7 @@ describe('scaffold', () => {
     it('ships a neutral theme.css stub, not an opinionated aesthetic', async () => {
       const targetDir = join(root, 'deck')
 
-      await scaffold({ targetDir, starter: 'none' })
+      await scaffold({ target: target(targetDir), starter: 'none' })
 
       const theme = await readFile(join(targetDir, 'theme.css'), 'utf8')
       expect(theme).toMatch(/:root/)
@@ -53,7 +58,7 @@ describe('scaffold', () => {
     it('does not install dependencies (no node_modules)', async () => {
       const targetDir = join(root, 'deck')
 
-      await scaffold({ targetDir, starter: 'none' })
+      await scaffold({ target: target(targetDir), starter: 'none' })
 
       const files = await readdir(targetDir)
       expect(files).not.toContain('node_modules')
@@ -62,7 +67,7 @@ describe('scaffold', () => {
     it('wires index.html to the machinery so the deck is navigable', async () => {
       const targetDir = join(root, 'deck')
 
-      await scaffold({ targetDir, starter: 'none' })
+      await scaffold({ target: target(targetDir), starter: 'none' })
 
       const html = await readFile(join(targetDir, 'index.html'), 'utf8')
       expect(html).toContain('theme.css')
@@ -71,54 +76,25 @@ describe('scaffold', () => {
     })
   })
 
-  describe('target folder validation', () => {
-    it('scaffolds into a pre-existing empty folder', async () => {
-      const targetDir = join(root, 'empty')
-      await mkdir(targetDir, { recursive: true })
+  it('scaffolds into a pre-existing empty directory', async () => {
+    const targetDir = join(root, 'empty')
+    await mkdir(targetDir, { recursive: true })
 
-      await scaffold({ targetDir, starter: 'none' })
+    await scaffold({ target: target(targetDir), starter: 'none' })
 
-      expect(await readdir(targetDir)).toContain('index.html')
-    })
-
-    it('refuses to write into a non-empty folder without clobbering it', async () => {
-      const targetDir = join(root, 'occupied')
-      const keepFile = join(targetDir, 'keep.txt')
-      await mkdir(targetDir, { recursive: true })
-      await writeFile(keepFile, 'precious')
-
-      await expect(scaffold({ targetDir, starter: 'none' })).rejects.toThrow(
-        /not empty/i,
-      )
-
-      // Nothing was clobbered or added.
-      expect(await readFile(keepFile, 'utf8')).toBe('precious')
-      expect(await readdir(targetDir)).toEqual(['keep.txt'])
-    })
+    expect(await readdir(targetDir)).toContain('index.html')
   })
 
-  describe('checkTargetDir', () => {
-    it('accepts a folder that does not exist yet without creating it', async () => {
-      const targetDir = join(root, 'not-yet')
+  it('trusts the validated target and merges into a non-empty directory without refusing', async () => {
+    const targetDir = join(root, 'occupied')
+    await mkdir(targetDir, { recursive: true })
+    await writeFile(join(targetDir, 'keep.txt'), 'precious')
 
-      expect(await checkTargetDir(targetDir)).toBe(true)
-      await expect(readdir(targetDir)).rejects.toMatchObject({ code: 'ENOENT' })
-    })
+    await scaffold({ target: target(targetDir), starter: 'none' })
 
-    it('accepts a pre-existing empty folder', async () => {
-      const targetDir = join(root, 'empty')
-      await mkdir(targetDir, { recursive: true })
-
-      expect(await checkTargetDir(targetDir)).toBe(true)
-    })
-
-    it('returns a clear message for a non-empty folder', async () => {
-      const targetDir = join(root, 'occupied')
-      await mkdir(targetDir, { recursive: true })
-      await writeFile(join(targetDir, 'keep.txt'), 'precious')
-
-      const result = await checkTargetDir(targetDir)
-      expect(result).toMatch(/not empty/i)
-    })
+    const files = await readdir(targetDir)
+    expect(files).toContain('keep.txt')
+    expect(files).toContain('index.html')
+    expect(await readFile(join(targetDir, 'keep.txt'), 'utf8')).toBe('precious')
   })
 })

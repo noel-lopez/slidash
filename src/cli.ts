@@ -2,18 +2,21 @@
 import { readFileSync } from 'node:fs'
 import { input } from '@inquirer/prompts'
 import { Command } from 'commander'
-import { resolveFolderInput, validateFolderInput } from './folder-input.js'
 import { scaffold } from './scaffolder.js'
+import {
+  resolveTargetDirectory,
+  validateTargetDirectoryInput,
+} from './target-directory.js'
 
 const pkg = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
 ) as { version: string }
 
-async function promptForFolder(): Promise<string> {
+async function promptForDirectory(): Promise<string> {
   return input({
     message: 'Where should we create your slides?',
     default: './slides',
-    validate: validateFolderInput,
+    validate: validateTargetDirectoryInput,
   })
 }
 
@@ -24,16 +27,21 @@ program
   .description('Craft beautiful HTML/CSS slides with AI. No builder, no bloat.')
   .version(pkg.version)
   .argument(
-    '[folder]',
-    'folder to scaffold the presentation into (relative or absolute; prompted if omitted)',
+    '[directory]',
+    'directory to scaffold the presentation into (relative or absolute; prompted if omitted)',
   )
-  .action(async (folder: string | undefined) => {
-    const { requested, targetDir } = resolveFolderInput(
-      folder ?? (await promptForFolder()),
+  .action(async (directory: string | undefined) => {
+    const result = await resolveTargetDirectory(
+      directory ?? (await promptForDirectory()),
     )
-    await scaffold({ targetDir, starter: 'none' })
-    console.log(`Scaffolded a presentation in ${requested}`)
-    console.log(`Open ${requested}/index.html in your browser to see it.`)
+    if (!result.ok) throw new Error(result.error)
+
+    const { target } = result
+    await scaffold({ target, starter: 'none' })
+    console.log(`Scaffolded a presentation in ${target.requested}`)
+    console.log(
+      `Open ${target.requested}/index.html in your browser to see it.`,
+    )
   })
 
 program.parseAsync().catch((err: unknown) => {
