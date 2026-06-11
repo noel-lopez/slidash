@@ -1,0 +1,11 @@
+# Target-directory validation lives upstream; the scaffolder trusts and does not re-check
+
+The CLI validates the target directory once, at intake (`resolveTargetDirectory`): it resolves the path and checks the directory is absent or empty, returning a validated `TargetDirectory`. `scaffold` accepts that value and copies into it **without re-checking the disk**. Vacancy is an intake concern decided in one place; the scaffolder's job is to copy, and it trusts the target it was handed. Both entry paths — the `[directory]` argument and the interactive prompt — converge on the same `resolveTargetDirectory` gate, so validation no longer diverges between them.
+
+We rejected keeping a second, atomic vacancy guard glued to the copy (a check immediately before `cp`, as the scaffolder does today) to close the time-of-check/time-of-use window between intake and write. In a single-user scaffolding CLI nobody mutates the target directory during the handful of prompts between choosing it and writing — `create-vite` makes the same assumption and carries no such guard. The guard's cost (coupling the copy step to vacancy policy, re-deriving the check, and a divergent validation path between the argument and prompt flows) outweighs a window no one exploits.
+
+The known consequence: in that rare window, if files appear in the target after intake, the copy does not abort — `fs.cp` (with its default `force: true`) overwrites same-named files and leaves the rest, i.e. it merges on top. This is the same outcome as `create-vite`'s "Ignore files and continue", reached for free as the natural behaviour of `cp` once the guard is gone, and it is acceptable precisely because it matches the reference.
+
+A future explorer who sees `scaffold` copy without first checking the directory is empty may read it as a clobbering bug and try to reinstate the check inside the scaffolder. That would re-couple copy with policy and undo this decision: the validation belongs at intake, not at the write.
+
+(The richer three-way handling of a non-empty target — cancel / remove existing files / ignore-and-merge, as `create-vite` offers interactively — is a deliberate future addition. When it lands it will live at intake too, alongside `resolveTargetDirectory`, never inside the scaffolder.)
