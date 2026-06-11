@@ -110,7 +110,145 @@
   if (nextBtn) nextBtn.addEventListener('click', next)
   if (prevBtn) prevBtn.addEventListener('click', prev)
 
+  // Grid overview (key G). Built as machinery, not authored markup: the overlay
+  // holds no content of yours, so slidash.js creates it rather than asking
+  // index.html to carry an empty container.
+  const gridOverlay = document.createElement('div')
+  gridOverlay.className = 'grid-overlay'
+  gridOverlay.hidden = true
+  const gridEl = document.createElement('div')
+  gridEl.className = 'grid'
+  gridOverlay.appendChild(gridEl)
+  document.body.appendChild(gridOverlay)
+
+  let gridOpen = false
+  let gridFocus = 0
+
+  // Thumbnail step: the slide's last step by default; override per slide with
+  // data-thumb-step (e.g. "0" to freeze a slide before its final reveal).
+  const thumbStepOf = (i) => {
+    const raw = slides[i].dataset.thumbStep
+    return raw != null ? parseInt(raw, 10) || 0 : stepsOf(i)
+  }
+
+  // Each thumbnail is a clone rendered at window size inside a scaled stage, so
+  // the slide's vw/vh resolve exactly as they do in the live presentation.
+  function buildGrid() {
+    const cellW = Math.max(200, Math.round(window.innerWidth * 0.18))
+    const scale = cellW / window.innerWidth
+    gridEl.style.setProperty('--cell-w', cellW + 'px')
+    gridEl.style.setProperty('--cell-h', Math.round(window.innerHeight * scale) + 'px')
+    gridEl.style.setProperty('--thumb-scale', String(scale))
+
+    gridEl.textContent = ''
+    slides.forEach((slide, i) => {
+      const cell = document.createElement('div')
+      cell.className = 'grid__cell' + (i === current ? ' is-current' : '')
+      cell.setAttribute('role', 'button')
+      cell.setAttribute('aria-label', 'Go to slide ' + (i + 1))
+
+      const stage = document.createElement('div')
+      stage.className = 'grid__stage'
+      const clone = slide.cloneNode(true)
+      clone.classList.remove('is-active')
+      applySteps(clone, thumbStepOf(i))
+      stage.appendChild(clone)
+
+      const num = document.createElement('span')
+      num.className = 'grid__num'
+      num.textContent = String(i + 1)
+
+      cell.appendChild(stage)
+      cell.appendChild(num)
+      cell.addEventListener('click', () => {
+        goTo(i)
+        closeGrid()
+      })
+      gridEl.appendChild(cell)
+    })
+  }
+
+  function markFocus(i) {
+    const cells = gridEl.children
+    if (cells[gridFocus]) cells[gridFocus].classList.remove('is-current')
+    gridFocus = Math.min(Math.max(i, 0), cells.length - 1)
+    const cell = cells[gridFocus]
+    if (cell) {
+      cell.classList.add('is-current')
+      cell.scrollIntoView({ block: 'nearest' })
+    }
+  }
+
+  function openGrid() {
+    buildGrid()
+    gridOverlay.hidden = false
+    gridOpen = true
+    markFocus(current)
+  }
+
+  function closeGrid() {
+    gridOverlay.hidden = true
+    gridOpen = false
+    gridEl.textContent = '' // release the clones
+  }
+
+  function toggleGrid() {
+    if (gridOpen) closeGrid()
+    else openGrid()
+  }
+
+  function handleGridKey(e) {
+    switch (e.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'PageUp':
+        e.preventDefault()
+        markFocus(gridFocus - 1)
+        break
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case 'PageDown':
+        e.preventDefault()
+        markFocus(gridFocus + 1)
+        break
+      case 'Home':
+        e.preventDefault()
+        markFocus(0)
+        break
+      case 'End':
+        e.preventDefault()
+        markFocus(slides.length - 1)
+        break
+      case 'Enter':
+        e.preventDefault()
+        goTo(gridFocus)
+        closeGrid()
+        break
+      case 'Escape':
+      case 'g':
+      case 'G':
+        e.preventDefault()
+        closeGrid()
+        break
+    }
+  }
+
+  gridOverlay.addEventListener('click', (e) => {
+    if (e.target === gridOverlay) closeGrid()
+  })
+
   document.addEventListener('keydown', (e) => {
+    // With the grid open, the keyboard drives it (the deck underneath stays put);
+    // navigation only fires on Enter/click.
+    if (gridOpen) {
+      handleGridKey(e)
+      return
+    }
+    if (e.key === 'g' || e.key === 'G') {
+      e.preventDefault()
+      toggleGrid()
+      return
+    }
     switch (e.key) {
       case 'ArrowRight':
       case ' ':

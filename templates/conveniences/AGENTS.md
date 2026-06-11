@@ -22,9 +22,13 @@ The machinery relies on a few small markup agreements:
 - `data-steps="N"` on a slide declares it has `N` reveal steps.
 - `data-step="k"` on a child element reveals it once the viewer reaches step `k`
   (it gets the `.is-revealed` class; `k` counts from 1).
+- `data-thumb-step="k"` on a slide renders its grid thumbnail at step `k`
+  (default: the slide's last step) — use `0` to freeze it before its reveals.
 
 ## Navigation
 
 - `←` / `→` (also `Space`, `PageUp`/`PageDown`) move between slides and steps.
 - `Home` / `End` jump to the first / last slide.
+- `G` opens a grid overview that thumbnails every slide; `←` / `→` move the
+  marker, `Enter` or a click jumps to a slide, `G` / `Esc` / a click outside closes.
 - The bottom chrome (arrows, progress dots, `N/total` counter) is clickable.
