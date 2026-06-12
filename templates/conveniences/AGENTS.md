@@ -43,3 +43,20 @@ mid-talk. The rest of the shape is self-evident in the file.
 It's a separate file, so it's yours to manage: if you ever need notes kept out of
 a public deploy, gitignoring `notes.js` is safe — the presenter view simply
 no-ops without it.
+
+## Seeing your work (the `snap` tool)
+
+`tools/snap.mjs` is your eyes: it walks the deck and writes a PNG per state to
+`tools/snaps/`. Reading images is expensive, so reach for it only to see what the
+markup can't tell you — layout, overflow, a reveal landing wrong — and snap the
+slide you're on, not the whole deck. After a change, don't re-snap to check your
+own work by default: whoever you're working with is usually watching the live
+deck, so offer to verify rather than spending the capture yourself.
+
+Run it from `tools/` (if it errors that Playwright is missing, install once with
+`cd tools && npm install && npx playwright install chromium`, then re-run):
+
+```sh
+node snap.mjs 3        # the slide you're on; space-separate more for several
+node snap.mjs          # every state — rarely; usually only when asked
+```
