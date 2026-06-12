@@ -39,6 +39,8 @@ describe('scaffold', () => {
           'AGENTS.md',
           'CLAUDE.md',
           'index.html',
+          'notes.html',
+          'notes.js',
           'slidash.css',
           'slidash.js',
           'theme.css',

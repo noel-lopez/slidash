@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Presenter view</title>
+    <!-- theme.css lets a starter restyle the presenter via the --slidash-presenter-* hooks below. -->
+    <link rel="stylesheet" href="theme.css" />
+    <style>
+      /* slidash machinery — presenter view. Edit freely. Self-sufficient: a dark
+         cockpit that renders with no starter at all. Themeable points go through
+         var(--slidash-presenter-*, <fallback>); set any in theme.css to deviate.
+
+           --slidash-presenter-bg       window background
+           --slidash-presenter-panel    button / chip background
+           --slidash-presenter-ink      primary text
+           --slidash-presenter-ink-soft secondary text
+           --slidash-presenter-ink-faint timestamps, hints
+           --slidash-presenter-accent   timer, active borders
+           --slidash-presenter-line     dividers, idle borders
+           --slidash-presenter-body     body font
+           --slidash-presenter-display  title font
+           --slidash-presenter-mono     timer / counter font */
+
+      :root {
+        --p-bg: var(--slidash-presenter-bg, #0e1016);
+        --p-panel: var(--slidash-presenter-panel, #171a22);
+        --p-ink: var(--slidash-presenter-ink, #e7e8ef);
+        --p-ink-soft: var(--slidash-presenter-ink-soft, #a4a8b6);
+        --p-ink-faint: var(--slidash-presenter-ink-faint, #6b6f80);
+        --p-accent: var(--slidash-presenter-accent, #818cf8);
+        --p-line: var(--slidash-presenter-line, #262a35);
+        --p-body: var(--slidash-presenter-body, system-ui, -apple-system, "Segoe UI", sans-serif);
+        --p-display: var(--slidash-presenter-display, var(--p-body));
+        --p-mono: var(--slidash-presenter-mono, ui-monospace, "SF Mono", monospace);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        padding: 1.5rem 1.75rem 1.25rem;
+        background: var(--p-bg);
+        color: var(--p-ink);
+        font-family: var(--p-body);
+        line-height: 1.5;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--p-line);
+      }
+
+      .timer {
+        font: 700 2.25rem/1 var(--p-mono);
+        letter-spacing: 0.02em;
+      }
+
+      .timer.is-paused {
+        color: var(--p-ink-faint);
+      }
+
+      .top__right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .counter {
+        font: 1.1rem/1 var(--p-mono);
+        color: var(--p-ink-soft);
+      }
+
+      .counter b {
+        color: var(--p-ink);
+      }
+
+      .btn {
+        padding: 0.45rem 0.8rem;
+        border: 1px solid var(--p-line);
+        border-radius: 8px;
+        background: var(--p-panel);
+        color: var(--p-ink-soft);
+        font: 600 0.8rem/1 var(--p-body);
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        color: var(--p-ink);
+        border-color: var(--p-accent);
+      }
+
+      .body {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .eyebrow {
+        font: 0.75rem/1 var(--p-mono);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--p-accent);
+      }
+
+      .eyebrow:empty {
+        display: none;
+      }
+
+      .slide-title {
+        font: 700 1.7rem/1.15 var(--p-display);
+      }
+
+      .note {
+        font-size: 1.18rem;
+        line-height: 1.65;
+        white-space: pre-wrap;
+      }
+
+      .note:empty::before {
+        content: "No notes for this slide. Add an entry in notes.js.";
+        color: var(--p-ink-faint);
+        font-size: 1rem;
+      }
+
+      .note code {
+        font-family: var(--p-mono);
+        font-size: 0.95em;
+        color: var(--p-accent);
+      }
+
+      .foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--p-line);
+      }
+
+      .next {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.95rem;
+        color: var(--p-ink-soft);
+      }
+
+      .next b {
+        color: var(--p-ink);
+        font-weight: 600;
+      }
+
+      .arrows {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 0.5rem;
+      }
+
+      .arrow {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 40px;
+        border: 1px solid var(--p-line);
+        border-radius: 10px;
+        background: var(--p-panel);
+        color: var(--p-ink-soft);
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+
+      .arrow:hover {
+        color: var(--p-ink);
+        border-color: var(--p-accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div class="timer" id="timer">00:00</div>
+      <div class="top__right">
+        <button class="btn" id="resetTimer" type="button">Reset</button>
+        <button class="btn" id="pauseTimer" type="button">Pause</button>
+        <span class="counter"><b id="cur">1</b> / <span id="total">1</span></span>
+      </div>
+    </div>
+
+    <div class="body">
+      <p class="eyebrow" id="eyebrow"></p>
+      <h1 class="slide-title" id="title">—</h1>
+      <p class="note" id="note"></p>
+    </div>
+
+    <div class="foot">
+      <div class="next">Next: <b id="next">—</b></div>
+      <div class="arrows">
+        <button class="arrow" id="prev" type="button" aria-label="Previous">←</button>
+        <button class="arrow" id="advance" type="button" aria-label="Next">→</button>
+      </div>
+    </div>
+
+    <!-- Speaker notes live in a separate, gitignorable file. When it's absent
+         (you never wrote one, or kept it out of a deploy) slidashNotes stays
+         undefined and the view falls back to the titles the deck sends. -->
+    <script src="notes.js"></script>
+    <script>
+      'use strict'
+
+      const notes = Array.isArray(window.slidashNotes) ? window.slidashNotes : []
+      const $ = (id) => document.getElementById(id)
+
+      // The note carries its own eyebrow/title; title falls back to the slide's
+      // heading (sent over sync) so a slide with no entry still reads right.
+      function render(index, step, total, title, nextTitle) {
+        const entry = notes[index] || {}
+        const nextEntry = notes[index + 1] || {}
+        $('cur').textContent = String(index + 1)
+        $('total').textContent = String(total)
+        $('eyebrow').textContent = entry.eyebrow || ''
+        $('title').textContent = entry.title || title || 'Slide ' + (index + 1)
+        $('note').innerHTML = entry.note
+          ? String(entry.note).replace(/\n/g, '<br>')
+          : ''
+        $('next').textContent = nextEntry.title || nextTitle || '(end)'
+      }
+
+      window.addEventListener('message', (e) => {
+        const msg = e.data || {}
+        if (msg.type === 'sync') {
+          render(msg.index, msg.step, msg.total, msg.title, msg.nextTitle)
+        }
+      })
+
+      function sendNav(dir) {
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage({ type: 'nav', dir: dir }, '*')
+        }
+      }
+      $('prev').addEventListener('click', () => sendNav('prev'))
+      $('advance').addEventListener('click', () => sendNav('next'))
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          e.preventDefault()
+          sendNav('next')
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault()
+          sendNav('prev')
+        }
+      })
+
+      let elapsed = 0
+      let running = true
+      setInterval(() => {
+        if (!running) return
+        elapsed += 1
+        const m = String(Math.floor(elapsed / 60)).padStart(2, '0')
+        const s = String(elapsed % 60).padStart(2, '0')
+        $('timer').textContent = m + ':' + s
+      }, 1000)
+      $('resetTimer').addEventListener('click', () => {
+        elapsed = 0
+        $('timer').textContent = '00:00'
+      })
+      $('pauseTimer').addEventListener('click', (e) => {
+        running = !running
+        $('timer').classList.toggle('is-paused', !running)
+        e.target.textContent = running ? 'Pause' : 'Resume'
+      })
+
+      // Announce readiness so the deck pushes the current position right away.
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage({ type: 'ready' }, '*')
+      }
+    </script>
+  </body>
+</html>

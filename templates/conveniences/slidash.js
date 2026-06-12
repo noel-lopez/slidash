@@ -13,8 +13,16 @@
 
   let current = 0
   let step = 0
+  let presenterWin = null
 
   const stepsOf = (i) => parseInt(slides[i].dataset.steps, 10) || 0
+
+  // The presenter view shows the current and next slide's title; derive both
+  // from the slide's first heading so they work even with no notes file.
+  const titleOf = (i) => {
+    const heading = slides[i].querySelector('h1, h2, h3, h4')
+    return heading ? heading.textContent.trim() : 'Slide ' + (i + 1)
+  }
 
   if (dotsWrap) {
     slides.forEach((_, i) => {
@@ -78,7 +86,59 @@
     })
     dots.forEach((dot, i) => dot.classList.toggle('is-active', i === current))
     if (counterCurrent) counterCurrent.textContent = String(current + 1)
+    syncPresenter()
   }
+
+  // Presenter view (key P). A second window (notes.html) showing speaker notes,
+  // a timer, the next slide's title and the slide number, kept in sync over
+  // postMessage (robust over file://, where fetch is not). Notes live in a
+  // separate, gitignorable notes.js, so a public deploy ships without them: over
+  // http(s) we probe for that file and stay a silent no-op when it's absent.
+  function spawnPresenter() {
+    presenterWin = window.open('notes.html', 'slidash-presenter', 'width=720,height=820')
+  }
+
+  function openPresenter() {
+    if (presenterWin && !presenterWin.closed) {
+      presenterWin.focus()
+      return
+    }
+    if (location.protocol === 'file:') {
+      spawnPresenter()
+      return
+    }
+    fetch('notes.js', { method: 'HEAD' })
+      .then((res) => {
+        if (res.ok) spawnPresenter()
+      })
+      .catch(() => {})
+  }
+
+  function syncPresenter() {
+    if (!presenterWin || presenterWin.closed) return
+    presenterWin.postMessage(
+      {
+        type: 'sync',
+        index: current,
+        step: step,
+        total: slides.length,
+        title: titleOf(current),
+        nextTitle: current + 1 < slides.length ? titleOf(current + 1) : null,
+      },
+      '*',
+    )
+  }
+
+  window.addEventListener('message', (e) => {
+    const msg = e.data || {}
+    if (msg.type === 'ready') {
+      if (e.source) presenterWin = e.source
+      syncPresenter()
+    } else if (msg.type === 'nav') {
+      if (msg.dir === 'next') next()
+      else if (msg.dir === 'prev') prev()
+    }
+  })
 
   function goTo(i) {
     if (i < 0 || i >= slides.length) return
@@ -247,6 +307,11 @@
     if (e.key === 'g' || e.key === 'G') {
       e.preventDefault()
       toggleGrid()
+      return
+    }
+    if (e.key === 'p' || e.key === 'P') {
+      e.preventDefault()
+      openPresenter()
       return
     }
     switch (e.key) {

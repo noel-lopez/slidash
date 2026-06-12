@@ -10,6 +10,8 @@ here is **yours** — rebuild any of it freely.
 - `theme.css` — the visual layer (colors, type, spacing). Yours to shape.
 - `slidash.css` — machinery: chrome, slide transitions, step reveals. Self-sufficient.
 - `slidash.js` — machinery: navigation only. You don't have to write navigation logic.
+- `notes.html` — machinery: the presenter view (key `P`). Self-sufficient.
+- `notes.js` — your speaker notes (see below). A separate file, yours to manage.
 
 `slidash.css` / `slidash.js` are the working floor, not walls. Edit them if you
 need to — but you rarely should.
@@ -31,4 +33,25 @@ The machinery relies on a few small markup agreements:
 - `Home` / `End` jump to the first / last slide.
 - `G` opens a grid overview that thumbnails every slide; `←` / `→` move the
   marker, `Enter` or a click jumps to a slide, `G` / `Esc` / a click outside closes.
+- `P` opens the presenter view in a second window — speaker notes, a timer, the
+  next slide's title and the slide number — synced both ways (you can navigate
+  from either window).
 - The bottom chrome (arrows, progress dots, `N/total` counter) is clickable.
+
+## Speaker notes
+
+The presenter view reads your notes from `notes.js`, one entry per slide in
+order. Each entry is `{ eyebrow?, title?, note }`; `title` falls back to the
+slide's own heading when you omit it. Your starter ships a starting point there;
+edit it:
+
+```js
+window.slidashNotes = [
+  { eyebrow: 'Intro', title: 'Welcome', note: 'Plain text or inline HTML like <strong>bold</strong>.' },
+  { title: 'Next up', note: 'Line breaks survive.' },
+]
+```
+
+It's a separate file, so you decide whether it ships: gitignore `notes.js` to
+keep your notes out of a public deploy (pressing `P` there then does a silent
+no-op). Slides without an entry simply show no note.
