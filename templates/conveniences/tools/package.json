@@ -1,0 +1,10 @@
+{
+  "name": "slidash-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vendored dev tools for this presentation",
+  "dependencies": {
+    "playwright": "^1.60.0"
+  }
+}

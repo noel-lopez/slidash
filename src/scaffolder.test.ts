@@ -44,8 +44,24 @@ describe('scaffold', () => {
           'slidash.css',
           'slidash.js',
           'theme.css',
+          'tools',
         ].sort(),
       )
+    })
+
+    it('vendors the snap tool with its own isolated package.json, uninstalled', async () => {
+      const targetDir = join(root, 'deck')
+
+      await scaffold({ target: target(targetDir), starter: 'none' })
+
+      const tools = await readdir(join(targetDir, 'tools'))
+      expect(tools.sort()).toEqual(['package.json', 'snap.mjs'])
+      expect(tools).not.toContain('node_modules')
+
+      const pkg = JSON.parse(
+        await readFile(join(targetDir, 'tools', 'package.json'), 'utf8'),
+      )
+      expect(pkg.dependencies).toHaveProperty('playwright')
     })
 
     it('ships a neutral theme.css stub, not an opinionated aesthetic', async () => {
