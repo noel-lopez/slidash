@@ -1,20 +1,25 @@
 # Agent guide
 
-This is a **slidash** presentation: plain HTML/CSS/JS, no build, no runtime
-dependencies. Open `index.html` with `file://` and it just works. Everything
-here is **yours** — rebuild any of it freely.
+This presentation was scaffolded with **slidash**: plain HTML/CSS/JS, no build
+step, no runtime dependencies — `index.html` opens over `file://`.
+
+Everything here is yours to edit, including the machinery (navigation, steps,
+grid, presenter view, chrome). It's a working floor, not walls.
+
+The look isn't documented here on purpose — it lives in `theme.css` (where you'll
+be writing styles too) and in the slides themselves. Read what's there and build
+on it; don't reinvent tokens that already exist. Reshaping the whole look is fair
+game when that's what you're asked for — just do it in `theme.css`, not by
+scattering one-off values.
 
 ## What lives where
 
-- `index.html` — your slides. This is where you spend your time.
-- `theme.css` — the visual layer (colors, type, spacing). Yours to shape.
-- `slidash.css` — machinery: chrome, slide transitions, step reveals. Self-sufficient.
-- `slidash.js` — machinery: navigation only. You don't have to write navigation logic.
-- `notes.html` — machinery: the presenter view (key `P`). Self-sufficient.
-- `notes.js` — your speaker notes (see below). A separate file, yours to manage.
-
-`slidash.css` / `slidash.js` are the working floor, not walls. Edit them if you
-need to — but you rarely should.
+- `index.html` — your slides. Where you spend your time.
+- `theme.css` — the visual layer (color, type, spacing). Yours.
+- `slidash.css` — machinery: chrome, transitions, step reveals, grid. Self-sufficient.
+- `slidash.js` — machinery: navigation, steps, grid, presenter sync.
+- `notes.html` — machinery: the presenter view window.
+- `notes.js` — your speaker notes (see below).
 
 ## Conventions
 
@@ -24,34 +29,17 @@ The machinery relies on a few small markup agreements:
 - `data-steps="N"` on a slide declares it has `N` reveal steps.
 - `data-step="k"` on a child element reveals it once the viewer reaches step `k`
   (it gets the `.is-revealed` class; `k` counts from 1).
-- `data-thumb-step="k"` on a slide renders its grid thumbnail at step `k`
-  (default: the slide's last step) — use `0` to freeze it before its reveals.
-
-## Navigation
-
-- `←` / `→` (also `Space`, `PageUp`/`PageDown`) move between slides and steps.
-- `Home` / `End` jump to the first / last slide.
-- `G` opens a grid overview that thumbnails every slide; `←` / `→` move the
-  marker, `Enter` or a click jumps to a slide, `G` / `Esc` / a click outside closes.
-- `P` opens the presenter view in a second window — speaker notes, a timer, the
-  next slide's title and the slide number — synced both ways (you can navigate
-  from either window).
-- The bottom chrome (arrows, progress dots, `N/total` counter) is clickable.
+- `data-thumb-step="k"` picks which step the grid thumbnail shows (default: the
+  last). Handy when a later step covers the slide — e.g. opens a popup — and an
+  earlier state reads better as the thumbnail.
 
 ## Speaker notes
 
-The presenter view reads your notes from `notes.js`, one entry per slide in
-order. Each entry is `{ eyebrow?, title?, note }`; `title` falls back to the
-slide's own heading when you omit it. Your starter ships a starting point there;
-edit it:
+Presenter notes live in `notes.js`, one entry per slide. The one rule worth
+stating: **faint-grey lines are private director cues — write them to be
+scanned, never spoken.** It's what keeps you from reading a coaching note aloud
+mid-talk. The rest of the shape is self-evident in the file.
 
-```js
-window.slidashNotes = [
-  { eyebrow: 'Intro', title: 'Welcome', note: 'Plain text or inline HTML like <strong>bold</strong>.' },
-  { title: 'Next up', note: 'Line breaks survive.' },
-]
-```
-
-It's a separate file, so you decide whether it ships: gitignore `notes.js` to
-keep your notes out of a public deploy (pressing `P` there then does a silent
-no-op). Slides without an entry simply show no note.
+It's a separate file, so it's yours to manage: if you ever need notes kept out of
+a public deploy, gitignoring `notes.js` is safe — the presenter view simply
+no-ops without it.
