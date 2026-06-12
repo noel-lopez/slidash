@@ -45,6 +45,6 @@ _Avoid_: overview mode, gallery.
 The file that tells the AI how to work in the scaffold — the conventions, the tools, and the "this is yours, rebuild freely" philosophy.
 _Avoid_: instructions file, prompt, README (for this purpose).
 
-**Shot (captura)**:
-A PNG of one slide at one step, produced by the vendored capture tool so the AI agent can see what it generated and correct itself.
-_Avoid_: screenshot (in prose; the file/command can still say `shot`/`shoot`).
+**Snap (captura)**:
+A PNG of one slide at one step, produced by the vendored capture tool (`snap`) so the AI agent can see what it generated and correct itself.
+_Avoid_: screenshot (in prose; the file/command says `snap`).
