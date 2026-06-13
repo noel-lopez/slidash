@@ -1,8 +1,9 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
+  clearDirectoryExceptGit,
   resolveTargetDirectory,
   validateTargetDirectoryInput,
 } from './target-directory.js'
@@ -45,7 +46,7 @@ describe('resolveTargetDirectory', () => {
     const result = await resolveTargetDirectory('  ./slides  ')
 
     expect(result).toEqual({
-      ok: true,
+      status: 'ready',
       target: {
         requested: './slides',
         targetDir: join(process.cwd(), 'slides'),
@@ -57,7 +58,7 @@ describe('resolveTargetDirectory', () => {
     const absolute = join(root, 'not-yet')
 
     expect(await resolveTargetDirectory(absolute)).toEqual({
-      ok: true,
+      status: 'ready',
       target: { requested: absolute, targetDir: absolute },
     })
   })
@@ -68,17 +69,17 @@ describe('resolveTargetDirectory', () => {
     const result = await resolveTargetDirectory(`  ${absolute}  `)
 
     expect(result).toEqual({
-      ok: true,
+      status: 'ready',
       target: { requested: absolute, targetDir: absolute },
     })
   })
 
-  it('accepts a pre-existing empty directory', async () => {
+  it('treats a pre-existing empty directory as ready', async () => {
     const empty = join(root, 'empty')
     await mkdir(empty, { recursive: true })
 
     expect(await resolveTargetDirectory(empty)).toEqual({
-      ok: true,
+      status: 'ready',
       target: { requested: empty, targetDir: empty },
     })
   })
@@ -87,19 +88,61 @@ describe('resolveTargetDirectory', () => {
     const result = await resolveTargetDirectory('   ')
 
     expect(result).toEqual({
-      ok: false,
+      status: 'invalid',
       error: expect.stringMatching(/relative or absolute/i),
     })
   })
 
-  it('rejects a non-empty directory with a clear message', async () => {
+  it('flags a non-empty directory for a decision, carrying the target', async () => {
     const occupied = join(root, 'occupied')
     await mkdir(occupied, { recursive: true })
     await writeFile(join(occupied, 'keep.txt'), 'precious')
 
-    const result = await resolveTargetDirectory(occupied)
+    expect(await resolveTargetDirectory(occupied)).toEqual({
+      status: 'not-empty',
+      target: { requested: occupied, targetDir: occupied },
+    })
+  })
+})
 
-    expect(result.ok).toBe(false)
-    expect(result.ok === false && result.error).toMatch(/not empty/i)
+describe('clearDirectoryExceptGit', () => {
+  let dir: string
+
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'slidash-clear-'))
+  })
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('removes files and nested directories', async () => {
+    await writeFile(join(dir, 'a.txt'), 'a')
+    await mkdir(join(dir, 'nested'))
+    await writeFile(join(dir, 'nested', 'b.txt'), 'b')
+
+    await clearDirectoryExceptGit(dir)
+
+    expect(await readdir(dir)).toEqual([])
+  })
+
+  it('preserves the .git directory', async () => {
+    await mkdir(join(dir, '.git'))
+    await writeFile(join(dir, '.git', 'HEAD'), 'ref: refs/heads/main')
+    await writeFile(join(dir, 'stale.txt'), 'stale')
+
+    await clearDirectoryExceptGit(dir)
+
+    expect(await readdir(dir)).toEqual(['.git'])
+    expect(await readdir(join(dir, '.git'))).toEqual(['HEAD'])
+  })
+
+  it('preserves a .git file (worktrees and submodules)', async () => {
+    await writeFile(join(dir, '.git'), 'gitdir: /elsewhere/.git/worktrees/x')
+    await writeFile(join(dir, 'stale.txt'), 'stale')
+
+    await clearDirectoryExceptGit(dir)
+
+    expect(await readdir(dir)).toEqual(['.git'])
   })
 })

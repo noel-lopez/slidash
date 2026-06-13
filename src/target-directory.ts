@@ -1,5 +1,5 @@
-import { readdir } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { readdir, rm } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
 
 export interface TargetDirectory {
   requested: string
@@ -7,8 +7,9 @@ export interface TargetDirectory {
 }
 
 export type ResolveResult =
-  | { ok: true; target: TargetDirectory }
-  | { ok: false; error: string }
+  | { status: 'ready'; target: TargetDirectory }
+  | { status: 'not-empty'; target: TargetDirectory }
+  | { status: 'invalid'; error: string }
 
 const EMPTY_INPUT = 'Enter a directory path (relative or absolute).'
 
@@ -20,19 +21,28 @@ export async function resolveTargetDirectory(
   value: string,
 ): Promise<ResolveResult> {
   const requested = value.trim()
-  if (!requested) return { ok: false, error: EMPTY_INPUT }
+  if (!requested) return { status: 'invalid', error: EMPTY_INPUT }
 
   const targetDir = resolve(process.cwd(), requested)
+  const target = { requested, targetDir }
 
   const existing = await readDirectory(targetDir)
-  if (existing.length > 0) {
-    return {
-      ok: false,
-      error: `Target directory is not empty: ${targetDir}. Refusing to overwrite existing files.`,
-    }
-  }
+  return existing.length > 0
+    ? { status: 'not-empty', target }
+    : { status: 'ready', target }
+}
 
-  return { ok: true, target: { requested, targetDir } }
+export async function clearDirectoryExceptGit(
+  targetDir: string,
+): Promise<void> {
+  const entries = await readdir(targetDir)
+  await Promise.all(
+    entries
+      .filter((entry) => entry !== '.git')
+      .map((entry) =>
+        rm(join(targetDir, entry), { recursive: true, force: true }),
+      ),
+  )
 }
 
 async function readDirectory(dir: string): Promise<string[]> {
