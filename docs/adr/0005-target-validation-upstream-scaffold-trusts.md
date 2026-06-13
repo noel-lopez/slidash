@@ -8,4 +8,4 @@ The known consequence: in that rare window, if files appear in the target after 
 
 A future explorer who sees `scaffold` copy without first checking the directory is empty may read it as a clobbering bug and try to reinstate the check inside the scaffolder. That would re-couple copy with policy and undo this decision: the validation belongs at intake, not at the write.
 
-(The richer three-way handling of a non-empty target — cancel / remove existing files / ignore-and-merge, as `create-vite` offers interactively — is a deliberate future addition. When it lands it will live at intake too, alongside `resolveTargetDirectory`, never inside the scaffolder.)
+The richer three-way handling of a non-empty target — cancel / remove existing files / ignore-and-merge, as `create-vite` offers interactively — now lives at intake too, alongside `resolveTargetDirectory`, never inside the scaffolder.

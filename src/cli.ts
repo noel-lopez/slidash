@@ -5,7 +5,9 @@ import { Command } from 'commander'
 import { scaffold } from './scaffolder.js'
 import { listStarters, type StarterId } from './starter-registry.js'
 import {
+  clearDirectoryExceptGit,
   resolveTargetDirectory,
+  type TargetDirectory,
   validateTargetDirectoryInput,
 } from './target-directory.js'
 
@@ -32,6 +34,36 @@ async function promptForStarter(): Promise<StarterId> {
   })
 }
 
+type NonEmptyAction = 'cancel' | 'remove' | 'ignore'
+
+async function promptForNonEmptyAction(
+  targetDir: string,
+): Promise<NonEmptyAction> {
+  return select<NonEmptyAction>({
+    message: `Target directory "${targetDir}" is not empty. Please choose how to proceed:`,
+    choices: [
+      { name: 'Cancel operation', value: 'cancel' },
+      { name: 'Remove existing files and continue', value: 'remove' },
+      { name: 'Ignore files and continue', value: 'ignore' },
+    ],
+  })
+}
+
+async function resolveNonEmptyTarget(
+  target: TargetDirectory,
+): Promise<TargetDirectory | null> {
+  if (!process.stdin.isTTY) {
+    throw new Error(
+      `Target directory is not empty: ${target.targetDir}. Refusing to overwrite existing files. Run slidash in an interactive terminal to choose how to proceed.`,
+    )
+  }
+
+  const action = await promptForNonEmptyAction(target.targetDir)
+  if (action === 'cancel') return null
+  if (action === 'remove') await clearDirectoryExceptGit(target.targetDir)
+  return target
+}
+
 const program = new Command()
 
 program
@@ -46,9 +78,18 @@ program
     const result = await resolveTargetDirectory(
       directory ?? (await promptForDirectory()),
     )
-    if (!result.ok) throw new Error(result.error)
+    if (result.status === 'invalid') throw new Error(result.error)
 
-    const { target } = result
+    let target = result.target
+    if (result.status === 'not-empty') {
+      const resolved = await resolveNonEmptyTarget(target)
+      if (!resolved) {
+        console.log('Operation cancelled.')
+        return
+      }
+      target = resolved
+    }
+
     const starter = await promptForStarter()
     await scaffold({ target, starter })
     console.log(`Scaffolded a presentation in ${target.requested}`)
