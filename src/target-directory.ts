@@ -26,10 +26,28 @@ export async function resolveTargetDirectory(
   const targetDir = resolve(process.cwd(), requested)
   const target = { requested, targetDir }
 
-  const existing = await readDirectory(targetDir)
-  return existing.length > 0
-    ? { status: 'not-empty', target }
-    : { status: 'ready', target }
+  try {
+    const existing = await readdir(targetDir)
+    return existing.length > 0
+      ? { status: 'not-empty', target }
+      : { status: 'ready', target }
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code
+    if (code === 'ENOENT') return { status: 'ready', target }
+    if (code === 'ENOTDIR') {
+      return {
+        status: 'invalid',
+        error: `${requested} exists but is a file, not a directory.`,
+      }
+    }
+    if (code === 'EACCES' || code === 'EPERM') {
+      return {
+        status: 'invalid',
+        error: `Cannot read ${requested}: permission denied.`,
+      }
+    }
+    throw err
+  }
 }
 
 export async function clearDirectoryExceptGit(
@@ -43,13 +61,4 @@ export async function clearDirectoryExceptGit(
         rm(join(targetDir, entry), { recursive: true, force: true }),
       ),
   )
-}
-
-async function readDirectory(dir: string): Promise<string[]> {
-  try {
-    return await readdir(dir)
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return []
-    throw err
-  }
 }

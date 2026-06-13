@@ -103,6 +103,18 @@ describe('resolveTargetDirectory', () => {
       target: { requested: occupied, targetDir: occupied },
     })
   })
+
+  it('rejects a target that is a file, not a directory, with a clear message', async () => {
+    const file = join(root, 'notes.txt')
+    await writeFile(file, 'i am a file')
+
+    const result = await resolveTargetDirectory(file)
+
+    expect(result).toEqual({
+      status: 'invalid',
+      error: expect.stringMatching(/file, not a directory/i),
+    })
+  })
 })
 
 describe('clearDirectoryExceptGit', () => {
