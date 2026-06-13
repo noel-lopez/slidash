@@ -1,0 +1,191 @@
+/* theme.css — the Indigo Ink visual layer. White canvas, near-black ink, a
+   single indigo accent, editorial-minimal type. This is the aesthetic
+   reference: read the tokens, lean on them, reshape them when you want a
+   different look. Re-hue the whole deck by editing --accent* alone. */
+
+:root {
+  /* Color — semantic, so a re-hued theme never lies. */
+  --bg: #ffffff;
+  --ink: #0a0a0a;
+  --ink-soft: #52525b;
+  --ink-faint: #a1a1aa;
+  --line: #e4e4e7;
+  --line-soft: #f1f1f3;
+
+  --accent: #4f46e5;
+  --accent-strong: #4338ca;
+  --accent-tint: #eef0ff;
+
+  /* Type — Google Fonts up top, a solid system face as fallback so the deck
+     reads well even before (or without) the network. */
+  --font-display: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Rhythm + motion. */
+  --maxw: 1100px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Conveniences hooks (ADR-0004): declare a --slidash-* only to deviate from
+     its built-in fallback. Indigo Ink tints the chrome, grid and presenter so
+     they read as part of the starter; everything else accepts the defaults. */
+  --slidash-ease: var(--ease);
+  --slidash-chrome-accent: var(--accent);
+  --slidash-chrome-mono: var(--font-mono);
+  --slidash-grid-cell-bg: var(--bg);
+  --slidash-presenter-accent: var(--accent);
+  --slidash-presenter-display: var(--font-display);
+  --slidash-presenter-mono: var(--font-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.1vw + 0.6rem, 1.25rem);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.slide__inner {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+
+/* ---- Base helpers ---- */
+.eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.title--hero {
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  font-weight: 700;
+  max-width: 14ch;
+}
+
+.title--section {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  max-width: 18ch;
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+/* ---- Cover — hero title, a thin indigo rule and an editable byline. ---- */
+.cover__meta {
+  margin-top: 2.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+}
+
+.cover__rule {
+  width: 2.5rem;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.cover__name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---- Cards — thin-bordered tiles with an inline icon. Four across,
+        folding to 2×2 on narrow screens. ---- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.5rem 1.35rem 1.45rem;
+  background: var(--bg);
+}
+
+.card__icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.card__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.card__label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+}
+
+.card__text {
+  font-size: 0.96rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+
+/* ---- Statement — a single full-bleed line. Large type, no attribution;
+        the breathing room is the point. ---- */
+.statement {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.25rem, 5.5vw, 4.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  max-width: 20ch;
+}
+
+/* ---- Takeaway — tinted highlight block; here, the closing call to action. */
+.takeaway {
+  margin-top: 2.5rem;
+  background: var(--accent-tint);
+  border-radius: 12px;
+  padding: 1.4rem 1.75rem;
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  line-height: 1.4;
+  color: var(--accent-strong);
+}
+
+.takeaway strong {
+  font-weight: 700;
+}

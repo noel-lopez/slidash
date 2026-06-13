@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>slidash presentation</title>
+
+    <!-- Indigo Ink's type. Loaded from Google Fonts; theme.css falls back to
+         system fonts, so the deck still opens cleanly offline over file://. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="slidash.css" />
+  </head>
+  <body>
+    <!-- 1 · Cover — typographic hero. -->
+    <section class="slide cover">
+      <div class="slide__inner">
+        <h1 class="title title--hero">
+          Prompt it. <span class="accent">Dash it.</span> Present it.
+        </h1>
+        <div class="cover__meta">
+          <span class="cover__rule"></span>
+          <span>Built with slidash</span>
+          <span>·</span>
+          <span class="cover__name">your name here</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 · A quick tour — dense modular grid; four cards reveal one by one. -->
+    <section class="slide" data-steps="4">
+      <div class="slide__inner">
+        <p class="eyebrow">A quick tour</p>
+        <h2 class="title title--section">
+          What it is, and how you <span class="accent">drive it</span>
+        </h2>
+
+        <div class="cards">
+          <article class="card" data-step="1">
+            <span class="card__icon">
+              <!-- infinity -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z" />
+              </svg>
+            </span>
+            <h3 class="card__label">Yours forever</h3>
+            <p class="card__text">Plain HTML, CSS and JS. Opens anywhere, no lock-in.</p>
+          </article>
+
+          <article class="card" data-step="2">
+            <span class="card__icon">
+              <!-- pencil -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </span>
+            <h3 class="card__label">Edit anything</h3>
+            <p class="card__text">Every pixel is yours. Tell your agent and it reshapes.</p>
+          </article>
+
+          <article class="card" data-step="3">
+            <span class="card__icon">
+              <!-- arrow-left-right -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m16 3 4 4-4 4" />
+                <path d="M20 7H4" />
+                <path d="m8 21-4-4 4-4" />
+                <path d="M4 17h16" />
+              </svg>
+            </span>
+            <h3 class="card__label">Navigate</h3>
+            <p class="card__text"><strong>← →</strong> move through slides and steps · <strong>G</strong> for the overview grid.</p>
+          </article>
+
+          <article class="card" data-step="4">
+            <span class="card__icon">
+              <!-- presentation -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h20" />
+                <path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" />
+                <path d="m7 21 5-5 5 5" />
+              </svg>
+            </span>
+            <h3 class="card__label">Presenter view</h3>
+            <p class="card__text"><strong>P</strong> opens speaker notes, a timer and what's next, in a synced window.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · Statement — full-bleed promise, the breathing room is the point. -->
+    <section class="slide">
+      <div class="slide__inner">
+        <p class="eyebrow">The idea</p>
+        <p class="statement">
+          Describe it. Your <span class="accent">agent</span> builds it.
+        </p>
+        <p class="muted">
+          You bring the content and the story; it does the markup, the layout
+          and the polish — and refines as you talk.
+        </p>
+      </div>
+    </section>
+
+    <!-- 4 · Your turn — closing call to action. -->
+    <section class="slide">
+      <div class="slide__inner">
+        <p class="eyebrow">Your turn</p>
+        <h2 class="title title--section">
+          A blank canvas that already <span class="accent">works</span>
+        </h2>
+        <p class="takeaway">
+          This is your canvas. Tell your agent what you're presenting —
+          and <strong>watch it take shape</strong>.
+        </p>
+      </div>
+    </section>
+
+    <!-- slidash.js wires up this chrome by id; keep the ids if you restyle it. -->
+    <nav class="chrome" aria-label="Slide navigation">
+      <div class="chrome__arrows">
+        <button id="prevBtn" class="chrome__btn" type="button" aria-label="Previous">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <button id="nextBtn" class="chrome__btn" type="button" aria-label="Next">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+        </button>
+      </div>
+      <div id="dots" class="chrome__dots"></div>
+      <span class="chrome__counter"><b id="counterCurrent">1</b>/<span id="counterTotal">4</span></span>
+    </nav>
+
+    <script src="slidash.js"></script>
+  </body>
+</html>
