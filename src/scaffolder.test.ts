@@ -1,16 +1,23 @@
 import {
+  chmod,
+  cp,
   mkdir,
   mkdtemp,
   readdir,
   readFile,
   rm,
+  stat,
   writeFile,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { scaffold } from './scaffolder.js'
 import type { TargetDirectory } from './target-directory.js'
+
+vi.mock('node:fs/promises', { spy: true })
+
+const notRoot = process.getuid === undefined || process.getuid() !== 0
 
 function target(targetDir: string): TargetDirectory {
   return { requested: targetDir, targetDir }
@@ -158,4 +165,96 @@ describe('scaffold', () => {
     expect(files).toContain('index.html')
     expect(await readFile(join(targetDir, 'keep.txt'), 'utf8')).toBe('precious')
   })
+
+  describe('atomic cleanup when a copy fails partway', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('removes the directory it created, restoring the previous state', async () => {
+      const targetDir = join(root, 'fresh')
+      vi.mocked(cp).mockRejectedValueOnce(new Error('disk full'))
+
+      await expect(
+        scaffold({ target: target(targetDir), starter: 'none' }),
+      ).rejects.toThrow()
+
+      await expect(stat(targetDir)).rejects.toMatchObject({ code: 'ENOENT' })
+    })
+
+    it('leaves a pre-existing empty directory empty, with no partial files', async () => {
+      const targetDir = join(root, 'empty')
+      await mkdir(targetDir, { recursive: true })
+
+      const realCp = (
+        (await vi.importActual(
+          'node:fs/promises',
+        )) as typeof import('node:fs/promises')
+      ).cp
+      let calls = 0
+      vi.mocked(cp).mockImplementation((...args) => {
+        calls += 1
+        if (calls === 2) return Promise.reject(new Error('disk full mid-copy'))
+        return realCp(...args)
+      })
+
+      await expect(
+        scaffold({ target: target(targetDir), starter: 'none' }),
+      ).rejects.toThrow()
+
+      expect(await readdir(targetDir)).toEqual([])
+    })
+
+    it('surfaces the write failure even when cleanup cannot complete', async () => {
+      const targetDir = join(root, 'fresh')
+      vi.mocked(cp).mockRejectedValueOnce(new Error('disk full'))
+      vi.mocked(rm).mockRejectedValueOnce(new Error('cleanup blew up'))
+
+      await expect(
+        scaffold({ target: target(targetDir), starter: 'none' }),
+      ).rejects.toThrow(/disk full/)
+    })
+
+    it('keeps pre-existing files when merging fails partway', async () => {
+      const targetDir = join(root, 'occupied')
+      await mkdir(targetDir, { recursive: true })
+      await writeFile(join(targetDir, 'keep.txt'), 'precious')
+
+      const realCp = (
+        (await vi.importActual(
+          'node:fs/promises',
+        )) as typeof import('node:fs/promises')
+      ).cp
+      let calls = 0
+      vi.mocked(cp).mockImplementation((...args) => {
+        calls += 1
+        if (calls === 2) return Promise.reject(new Error('disk full mid-copy'))
+        return realCp(...args)
+      })
+
+      await expect(
+        scaffold({ target: target(targetDir), starter: 'none' }),
+      ).rejects.toThrow()
+
+      expect(await readdir(targetDir)).toEqual(['keep.txt'])
+      expect(await readFile(join(targetDir, 'keep.txt'), 'utf8')).toBe(
+        'precious',
+      )
+    })
+  })
+
+  it.skipIf(!notRoot)(
+    'fails with a clear message, not a raw stack trace, when the target is not writable',
+    async () => {
+      const targetDir = join(root, 'locked')
+      await mkdir(targetDir, { recursive: true })
+      await chmod(targetDir, 0o555)
+
+      await expect(
+        scaffold({ target: target(targetDir), starter: 'none' }),
+      ).rejects.toThrow(/permission denied/i)
+
+      await chmod(targetDir, 0o755)
+    },
+  )
 })
