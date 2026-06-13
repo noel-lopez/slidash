@@ -1,5 +1,6 @@
 import { readdir, rm } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { homedir } from 'node:os'
+import { join, resolve, sep } from 'node:path'
 
 export interface TargetDirectory {
   requested: string
@@ -13,6 +14,15 @@ export type ResolveResult =
 
 const EMPTY_INPUT = 'Enter a directory path (relative or absolute).'
 
+function expandHome(path: string): string {
+  if (path === '~') return homedir()
+  const separators = sep === '/' ? ['/'] : ['/', sep]
+  if (separators.some((s) => path.startsWith(`~${s}`))) {
+    return homedir() + path.slice(1)
+  }
+  return path
+}
+
 export function validateTargetDirectoryInput(value: string): true | string {
   return value.trim() ? true : EMPTY_INPUT
 }
@@ -23,7 +33,7 @@ export async function resolveTargetDirectory(
   const requested = value.trim()
   if (!requested) return { status: 'invalid', error: EMPTY_INPUT }
 
-  const targetDir = resolve(process.cwd(), requested)
+  const targetDir = resolve(process.cwd(), expandHome(requested))
   const target = { requested, targetDir }
 
   try {

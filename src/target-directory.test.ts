@@ -104,6 +104,55 @@ describe('resolveTargetDirectory', () => {
     })
   })
 
+  describe('with ~ expansion', () => {
+    let home: string
+    let originalHome: string | undefined
+
+    beforeEach(async () => {
+      home = await mkdtemp(join(tmpdir(), 'slidash-home-'))
+      originalHome = process.env.HOME
+      process.env.HOME = home
+    })
+
+    afterEach(async () => {
+      if (originalHome === undefined) delete process.env.HOME
+      else process.env.HOME = originalHome
+      await rm(home, { recursive: true, force: true })
+    })
+
+    it('expands ~/something to the home directory, leaving requested as typed', async () => {
+      const result = await resolveTargetDirectory('~/talks/demo')
+
+      expect(result).toEqual({
+        status: 'ready',
+        target: {
+          requested: '~/talks/demo',
+          targetDir: join(home, 'talks', 'demo'),
+        },
+      })
+    })
+
+    it('expands a bare ~ to the home directory', async () => {
+      const bare = await resolveTargetDirectory('~')
+      expect(bare).toEqual({
+        status: 'ready',
+        target: { requested: '~', targetDir: home },
+      })
+    })
+
+    it('leaves ~user/... untouched (no other-user home expansion)', async () => {
+      const result = await resolveTargetDirectory('~someone/talks')
+
+      expect(result).toEqual({
+        status: 'ready',
+        target: {
+          requested: '~someone/talks',
+          targetDir: join(process.cwd(), '~someone', 'talks'),
+        },
+      })
+    })
+  })
+
   it('rejects a target that is a file, not a directory, with a clear message', async () => {
     const file = join(root, 'notes.txt')
     await writeFile(file, 'i am a file')
