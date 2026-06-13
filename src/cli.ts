@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs'
-import { input } from '@inquirer/prompts'
+import { input, select } from '@inquirer/prompts'
 import { Command } from 'commander'
 import { scaffold } from './scaffolder.js'
+import { listStarters, type StarterId } from './starter-registry.js'
 import {
   resolveTargetDirectory,
   validateTargetDirectoryInput,
@@ -17,6 +18,17 @@ async function promptForDirectory(): Promise<string> {
     message: 'Where should we create your slides?',
     default: './slides',
     validate: validateTargetDirectoryInput,
+  })
+}
+
+async function promptForStarter(): Promise<StarterId> {
+  return select<StarterId>({
+    message: 'Pick a starter to build on',
+    choices: listStarters().map((s) => ({
+      name: s.label,
+      value: s.id,
+      description: s.description,
+    })),
   })
 }
 
@@ -37,7 +49,8 @@ program
     if (!result.ok) throw new Error(result.error)
 
     const { target } = result
-    await scaffold({ target, starter: 'none' })
+    const starter = await promptForStarter()
+    await scaffold({ target, starter })
     console.log(`Scaffolded a presentation in ${target.requested}`)
     console.log(
       `Open ${target.requested}/index.html in your browser to see it.`,

@@ -94,6 +94,49 @@ describe('scaffold', () => {
     })
   })
 
+  describe('the "indigo-ink" starter', () => {
+    it('emits the conveniences plus the Indigo Ink visual layer', async () => {
+      const targetDir = join(root, 'deck')
+
+      await scaffold({ target: target(targetDir), starter: 'indigo-ink' })
+
+      const files = await readdir(targetDir)
+      expect(files.sort()).toEqual(
+        [
+          'AGENTS.md',
+          'CLAUDE.md',
+          'index.html',
+          'notes.html',
+          'notes.js',
+          'slidash.css',
+          'slidash.js',
+          'theme.css',
+          'tools',
+        ].sort(),
+      )
+    })
+
+    it('ships a token-first theme that tints the chrome through the machinery hooks', async () => {
+      const targetDir = join(root, 'deck')
+
+      await scaffold({ target: target(targetDir), starter: 'indigo-ink' })
+
+      const theme = await readFile(join(targetDir, 'theme.css'), 'utf8')
+      expect(theme).toMatch(/--accent:\s*#4f46e5/i)
+      expect(theme).toMatch(/--slidash-chrome-accent:\s*var\(--accent\)/)
+    })
+
+    it('opens cleanly over file:// — fonts degrade to a system fallback', async () => {
+      const targetDir = join(root, 'deck')
+
+      await scaffold({ target: target(targetDir), starter: 'indigo-ink' })
+
+      const theme = await readFile(join(targetDir, 'theme.css'), 'utf8')
+      expect(theme).toMatch(/--font-display:[^;]*system-ui/i)
+      expect(theme).toMatch(/--font-body:[^;]*system-ui/i)
+    })
+  })
+
   it('scaffolds into a pre-existing empty directory', async () => {
     const targetDir = join(root, 'empty')
     await mkdir(targetDir, { recursive: true })
